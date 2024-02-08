@@ -6,39 +6,80 @@ use File::Basename;
 use lib dirname($0);
 
 use File;
-use Pacup;
-use Track;
-use Unpac;
 
 
-# ------ 2pac
-# ensure setup & config is correct
-# set global vars based on config
 my $config = &File::load_config;
 
-# process cli arguments: 2pac ...
-# pacup <options>
-# unpac <options> <source dir>
-# track <list of paths>
-#
-# options like -p push to repo, -w write to disk
+my $d;
+my $p;
+my $path;
 
-# ------ pacup
-# if -d, parse all files for the appearance of filenames or paths, then attempt to locate and save any found
-# warn to double-check config file dependencies are all accounted for, symlinks or aliases may not have been found, for ex. 
-# if -p, and if git is known from gitinfo, push changes to repo
-# if -w, and if disk was specifed, copy directory to disk
-# end message
+foreach (@args) {
+    if ($_ eq '-p') { $p = 1 }
+    if ($_ eq '-d') { $d = 1 }
+    else { $path = $_ }
+}
 
-# ------ unpac
-# if -p, pull vault from repository
-# if -d, copy vault from disk location
-# if blank, use the vault present in the script's root dir
-# end message
+if (@ARGV) {
+    ($command, @args) = @ARGV;
+    if ($command eq 'track') { track($path) }
+    elsif ($command eq 'pacup') { 
+        &pacup;
+        if ($p) { &push_remote }
+        if ($d) { system("cp", $ENV{HOME}.'/.cache/2pac/', $path) }
+    }
+    elsif ($command eq 'unpac') { unpac($path) }
+    else { &Help::help }
+}
 
-# ------ track
+sub push_remote {
+    system("cd",  $ENV{HOME}.'/.cache/2pac/');
+    system("git pull origin master"); # TBD Revisit alternate branch names
+    my $today = &File::get_current_date;
+    system("git add . && git commit -m 'Pacup $today'");
+    system("git push origin master"); # TBD Revisit alternate branch names
+}
 
-# ------ uninstall
-# undo everything created by setup
-# remove alias, delete repo's
-# if install points to /, instead print dirnames to be deleted manually
+sub track { # Adds the specified file or directory to tracking.txt
+    my $filepath = dirname(my ($file) = @_);
+    if (-e $filepath.'/'.$file) {
+        my $tracking = load_tracking();
+        print $tracking, "$filepath/$file\n";
+        File::close_file($tracking);
+    } else { die "Error: Couldn't find $file in this path" }
+}
+
+
+sub pacup { # Serializes packages and tracked files/dirs to destination.
+    my @packages = split('\n', system("pacman -Qe"));
+    # TBD pacman option to find dotfile path?
+    my $registry = File::create_registry();
+    print $registry, join('\n', @packages), '\n';
+    File::close_file($registry);
+
+    my $tracking = File::load_tracking();
+    my @tracked = split('\n', $tracking);
+    File::close_file($tracking);
+    foreach (@tracked) {
+        unless (File::copy_file($_)) { print "Tracked file $_ could not be saved; it may have been moved or deleted." }
+    }
+}
+
+
+sub unpac { # Restores serialized packages and files from cache. Requires sudo!
+    my ($cache_path) = @_;
+
+    my $registry = File::load_registry($cache_path);
+    my @packages = split('\n', $registry);
+    system("pacman -Syu", join(' ', @packages));
+    File::close_file($registry);
+    
+    my @files = split('\n', system("ls", $cache_path.'/vault'));
+    for my $file (@files) {
+        unless $file =~ "registry.txt" || $file =~ "tracking.txt" {
+            File::restore_filepath($file)
+        }
+    }
+}
+
+

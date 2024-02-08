@@ -9,6 +9,10 @@ my $program_name = "2pac";
 my $program_file = getcwd()."/src/2pac.pl";
 my $program = "'perl $program_file'";
 
+# TODO ------ uninstall
+# undo everything created by setup
+# remove alias, delete repo's
+# if install points to /, instead print dirnames to be deleted manually
 
 my $cache = "$ENV{HOME}/.cache/2pac/";
 my $vault = $cache.'vault/';
@@ -125,7 +129,7 @@ sub add_alias {
 	open my $fh, '>>', $config or die "ERROR: Failed to modify $config\n$!";
 	print $fh $alias_line;
 	close $fh;
-    #TODO Record alias location in config.toml file for later removal
+    #TODO Record alias location in ~/.config/2pac.toml file for later removal
 }
 
 sub shell_config_error {
