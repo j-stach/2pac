@@ -10,10 +10,12 @@ my $program_file = getcwd()."/src/2pac.pl";
 my $program = "'perl $program_file'";
 
 
-my $vault_dir = "./vault/";
-unless (-d $vault_dir) {
-	mkdir $vault_dir or die "Failed to create directory: $!\n\ Please add $vault_dir to the root directory.\n";
-	print "Created save directory: $vault_dir\n";
+my $cache = "$ENV{HOME}/.cache/2pac/";
+my $vault = $cache.'vault/';
+unless (-d $vault) {
+	mkdir $cache or die "Failed to create directory: Please add $cache manually.\n$!\n" ;
+	mkdir $vault or die "Failed to create directory: Please add $vault manually.\n$!\n" ;
+	print "Created vault directory: $vault\n";
 }
 
 my $shell_path = $ENV{'SHELL'};

@@ -1,5 +1,4 @@
 
-
 package Pacup;
 
 use v5.14;
@@ -17,7 +16,7 @@ our @EXPORT = qw(pacup);
 sub pacup { # Serializes packages and tracked files/dirs to destination.
 
     # Register explicitly-installed pacman packages.
-    my @packages = split('\n', system("sh pacman -Qe"));
+    my @packages = split('\n', system("pacman -Qe"));
     # TBD pacman option to find dotfile path?
     my $registry = File::create_registry();
     print $registry, join('\n', @packages), '\n';
@@ -28,7 +27,7 @@ sub pacup { # Serializes packages and tracked files/dirs to destination.
     my @tracked = split('\n', $tracking);
     File::close_file($tracking);
     foreach (@tracked) {
-        unless File::copy_file($_) { print "Tracked file $_ could not be saved; it may have been moved or deleted." }
+        unless (File::copy_file($_)) { print "Tracked file $_ could not be saved; it may have been moved or deleted." }
     }
 }
 
