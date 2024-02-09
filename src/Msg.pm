@@ -21,10 +21,10 @@ See https://github.com/j-stach/2pac/README.md for more information.
     If -p flag was passed, pushes to the remote git repo set up for the cache.
     If -d was passed, copies the cache to a location specified by PATH.
 
-\$ sudo 2pac unpac <Path/To/Cache>
+\$ 2pac unpac <Path/To/Cache>
     Syncs packages in registry and restores paths for files in vault.
     If Path/To/Cache is provided, 2pac will attempt to unpac that directory,
-    otherwise ~/.cache/2pac will be used.
+    otherwise ~/.cache/2pac will be used. (Will ask for password for sudo.)
 
 ")}
 

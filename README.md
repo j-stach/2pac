@@ -51,7 +51,7 @@ repository if one has been configured in git or is specified in
 
 The `-d PATH` option will attempt to copy `~/.cache/2pac/` to that location. 
 <br>
-### sudo 2pac unpac Path/To/Cache/
+### 2pac unpac Path/To/Cache/
 Clone the cache back from git or find it on the drive where it was stored.
 Pass the location to `unpac` to sync pacman packages and restore the
 directory structures and files saved in `vault/`.

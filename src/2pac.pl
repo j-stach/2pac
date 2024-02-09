@@ -59,7 +59,7 @@ sub track {
     if (-e $filename) {
         if (open my $fh, '>>', $cache.'tracking.txt') { 
             print $fh "$filename\n"; close $fh;
-        } else { die "tracking.txt exists but could not be accessed.\n$!" } # TODO Msg
+        } else { die "tracking.txt exists but could not be accessed.\n$!" }
     } else { die "Error: Couldn't find $file in this path.\n$!" }
 }
 
@@ -67,10 +67,9 @@ sub track {
 # Record packages and save tracked files/dirs to 2pac/vault.
 sub pacup { 
     my $packages = qx{pacman -Qe};
-    # TBD pacman option to find dotfile/config path?
     if (open my $fh, '>', $cache.'registry.txt') { 
         print $fh $packages; close $fh;
-    } else { die "registry.txt could not be created.\n$!" } # TODO Msg
+    } else { die "registry.txt could not be created.\n$!" }
 
     # Copy the files at the filepaths stored in 2pac/tracking.txt.
     # TODO Clean up tracking for non-existant files
@@ -79,7 +78,7 @@ sub pacup {
             chomp $tracked;
             Files::save($tracked);
         }
-    } else { die "tracking.txt exists but could not be accessed.\n$!" } # TODO Msg
+    } else { die "tracking.txt exists but could not be accessed.\n$!" }
 }
 
 
@@ -98,8 +97,8 @@ sub unpac {
                 push @packages, $1;
             }
         }
-    } else { die "registry.txt could not be read.\n$!" } # TODO Msg
-    system("sudo", "pacman", "-Syu", @packages); # TODO separate??
+    } else { die "registry.txt could not be read.\n$!" }
+    system("sudo", "pacman", "-Syu", @packages);
     
     # Load and restore files and directories. (Will overwrite.)
     my $vault_dir = $cache_path.'vault/';
