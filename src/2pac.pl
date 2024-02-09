@@ -35,6 +35,7 @@ if (@ARGV) {
     }
     elsif ($command eq 'unpac') { if ($path) { unpac($path) } else { &unpac; } }
     else { &Msg::help }
+    # TODO Clean & untrack
 } else { &Msg::help }
 
 # Commit and try to push to remote git repository, if one is set up.
@@ -62,6 +63,7 @@ sub track {
     } else { die "Error: Couldn't find $file in this path.\n$!" }
 }
 
+
 # Record packages and save tracked files/dirs to 2pac/vault.
 sub pacup { 
     my $packages = qx{pacman -Qe};
@@ -71,6 +73,7 @@ sub pacup {
     } else { die "registry.txt could not be created.\n$!" } # TODO Msg
 
     # Copy the files at the filepaths stored in 2pac/tracking.txt.
+    # TODO Clean up tracking for non-existant files
     if (open my $fh, '<', $cache.'tracking.txt') { 
         while (my $tracked = <$fh>) {
             chomp $tracked;
@@ -78,7 +81,6 @@ sub pacup {
         }
     } else { die "tracking.txt exists but could not be accessed.\n$!" } # TODO Msg
 }
-
 
 
 # Restores serialized packages and files from cache. Requires sudo!
@@ -90,12 +92,14 @@ sub unpac {
     # Load and re-sync packages. (Non-destructive.)
     my @packages;
     if (open my $fh, '<', $cache_path.'registry.txt') { 
-        while (my $pkg = <$fh>) {
-            chomp $pkg;
-            push @packages, $pkg;
+        while (my $line = <$fh>) {
+            my $pattern = qr{(.*) [0..9\.]+-[0..9]+\n};
+            if ($line =~ $pattern) {
+                push @packages, $1;
+            }
         }
     } else { die "registry.txt could not be read.\n$!" } # TODO Msg
-    system("pacman -Syu", join(' ', @packages));
+    system("sudo", "pacman", "-Syu", @packages); # TODO separate??
     
     # Load and restore files and directories. (Will overwrite.)
     my $vault_dir = $cache_path.'vault/';
