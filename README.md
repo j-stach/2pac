@@ -44,9 +44,9 @@ Queries pacman for explicitly-installed packages and records the list in
 `~/.cache/2pac/registry.txt`, then for every file/directory found in 
 `tracking.txt`, copies that file to `vault/` under a filename that 
 represents its path. <br>
-**NOTE:** It does this by escaping all `/` in the filepath so filepaths,
-and does not account for names that have `\/` already in the filename.
-They should be renamed before using `2pac track`. <br>
+**NOTE:** It does this by escaping all `/` in the filepath and does not account
+for names that have `\/` already in the filename. They should be renamed before 
+using `2pac track`. <br>
 
 The `-p` flag will attempt to push the updated `vault/` to its remote 
 repository if one has been configured in git or is specified in 
