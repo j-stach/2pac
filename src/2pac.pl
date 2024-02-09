@@ -2,6 +2,7 @@
 # 2pac main procedure 
 
 use v5.14;
+use Cwd;
 use File::Basename;
 use lib dirname($0);
 
@@ -32,7 +33,7 @@ if (@ARGV) {
         if ($p) { &push_git; }
         if ($d) { system("cp", $ENV{HOME}.'/.cache/2pac/', $path) }
     }
-    elsif ($command eq 'unpac') { unpac($path) }
+    elsif ($command eq 'unpac') { if ($path) { unpac($path) } else { &unpac; } }
     else { &Msg::help }
 } else { &Msg::help }
 
@@ -52,37 +53,30 @@ sub push_git {
 
 # Add the specified file or directory to 2pac/tracking.txt.
 sub track { 
-    my $filepath = dirname(my ($file) = @_);
+    my $filepath = Cwd::abs_path(dirname(my ($file) = @_));
     my $filename = $filepath.'/'.$file;
     if (-e $filename) {
-        my $tracking = Files::load_tracking();
-        print $tracking, "$filename\n";
-        Files::close($tracking);
-    } else { die "Error: Couldn't find $file in this path" }
+        if (open my $fh, '>>', $cache.'tracking.txt') { 
+            print $fh "$filename\n"; close $fh;
+        } else { die "tracking.txt exists but could not be accessed.\n$!" } # TODO Msg
+    } else { die "Error: Couldn't find $file in this path.\n$!" }
 }
-
 
 # Record packages and save tracked files/dirs to 2pac/vault.
 sub pacup { 
     my $packages = qx{pacman -Qe};
     # TBD pacman option to find dotfile/config path?
-    if (open my $fh, '>', $cache.'registry.txt') { print $fh $packages; } 
-    else { die "registry.txt could not be created. Check permissions?" } # TODO Msg
+    if (open my $fh, '>', $cache.'registry.txt') { 
+        print $fh $packages; close $fh;
+    } else { die "registry.txt could not be created.\n$!" } # TODO Msg
 
     # Copy the files at the filepaths stored in 2pac/tracking.txt.
-    my $tracking = Files::load_tracking();
-    my @tracked = split('\n', $tracking);
-    Files::close($tracking);
-    if ($#tracked > 0) {
-        foreach (@tracked) {
-            unless (Files::save($_)) { 
-                print "Tracked file $_ could not be saved; it may have been moved or deleted." 
-            } # TODO or &Msg::missing_file
+    if (open my $fh, '<', $cache.'tracking.txt') { 
+        while (my $tracked = <$fh>) {
+            chomp $tracked;
+            Files::save($tracked);
         }
-    }
-}
-# Create a new registry, overwriting any existing registry.txt.
-sub create_registry { 
+    } else { die "tracking.txt exists but could not be accessed.\n$!" } # TODO Msg
 }
 
 
@@ -91,20 +85,23 @@ sub create_registry {
 sub unpac { 
     my $cache_path;
     # If no path is provided, use the default in ~/.cache
-    unless (($cache_path) = @_) { $cache_path = $File::cache }
+    unless (($cache_path) = @_) { $cache_path = $Files::cache }
 
     # Load and re-sync packages. (Non-destructive.)
-    my $registry = Files::load_registry($cache_path);
-    my @packages = split('\n', $registry);
+    my @packages;
+    if (open my $fh, '<', $cache_path.'registry.txt') { 
+        while (my $pkg = <$fh>) {
+            chomp $pkg;
+            push @packages, $pkg;
+        }
+    } else { die "registry.txt could not be read.\n$!" } # TODO Msg
     system("pacman -Syu", join(' ', @packages));
-    Files::close($registry);
     
     # Load and restore files and directories. (Will overwrite.)
-    my @files = split('\n', system("ls", $cache_path.'/vault'));
-    for my $file (@files) {
-        unless ($file =~ "registry.txt" || $file =~ "tracking.txt") {
-            Files::restore($file)
-        }
+    my $vault_dir = $cache_path.'vault/';
+    my @files = split('\n', qx{ls $vault_dir});
+    foreach (@files) {
+        Files::restore($vault_dir, $_)
     }
 }
 

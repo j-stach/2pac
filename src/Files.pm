@@ -8,8 +8,8 @@ use lib dirname($0);
 
 use Exporter 5.57 'import';
 our $VERSION = '0.10';
-our @EXPORT = qw($cache $vault $config load_config load_tracking load_registry close get_current_date save restore);
-
+our @EXPORT = qw($cache $vault $config load_config load_registry close get_current_date save restore);
+#
 
 # Default file locations:
 our $config = $ENV{HOME}.'/.config/2pac.toml';
@@ -35,8 +35,7 @@ sub load_config {
     if (-e $config) { 
         if (open my $fh, '<', $config) { return $fh } 
         else { die "2pac.toml exists but could not be loaded. Check permissions?" }
-    }
-    else { 
+    } else { 
         if (open my $new, '>', $config) { 
             print $new $default_config; 
             close $new; 
@@ -47,19 +46,6 @@ sub load_config {
 }
 
 
-# Get the append-handle for tracking.txt, creating a new empty file if it doesn't exist.
-sub load_tracking { 
-    my $tracking = $cache.'tracking.txt';
-    if (-e $tracking) { 
-        if (open my $fh, '>>', $tracking) { return $fh } 
-        else { die "tracking.txt exists but could not be accessed. Try using 'sudo'." } # TODO Msg
-    } else { 
-        if (open my $new, '>', $tracking) { close $new; &load_tracking } 
-        else { die "Failed to create $tracking...\n\ $!" }
-    }
-} 
-
-
 # Get the read-handle for the package registry, registry.txt, if it exists.
 sub load_registry { 
     local ($cache) = @_;
@@ -67,7 +53,7 @@ sub load_registry {
     if (-e $registry) { 
         if (open my $fh, '<', $registry) { return $fh } 
         else { die "registry.txt exists but could not be loaded. Check permissions?" } # TODO Msg
-    } else { die "$registry does not exist.\n\ $!" }
+    } else { die "$registry does not exist.\n$!" }
 }
 
 
@@ -76,15 +62,16 @@ sub close { my ($fh) = @_; close $fh or die "Could not close file handle." }
 
 
 # Turns the filepath into a filename by escaping "/".
-sub filename_from_path { my ($name) = @_ =~ s/\//\\\//gr; return $name }
-# Turns the filename into a filepath by removing all escapes before "/".
-sub filename_to_path { my ($path) = @_ =~ s/\\\//\//gr; return $path }
+sub filename_from_path { my ($name) = @_; $name =~ s/\//__/g; return $name }
+
+#Turns the filename into a filepath by removing all escapes before "/".
+sub filename_to_path { my ($path) = @_; $path =~ s/__/\//g; return $path }
 
 # Copies file to the vault.
 sub save { 
     my ($path) = @_;
     my $filename = filename_from_path($path);
-    system("cp $path $vault$filename"); # TODO Test on directories too?
+    system("cp", "$path", "$vault$filename"); # TODO Test on directories too?
 }
 
 # Restores file to original path, recreating directories if necessary.
@@ -93,19 +80,14 @@ sub restore {
     my $filepath = filename_to_path($serde_file);
     my @path = split('/', $filepath);
     # Walk down the path and recreate missing directories.
-    system("cd");
-    for my $i (0 .. $#path-1) {
-        my $dir = $path[$i];
-        if (-e $dir) { system("cd $dir"); continue }
-        else {
-            system("mkdir $dir");
-            system("cd $dir"); 
-            continue 
-        }
+    my $filepath = $ENV{HOME};
+    for my $i (1 .. $#path-1) {
+        $filepath = $filepath.'/'.$path[$i];
+        unless (-d $filepath) { system("mkdir", "$filepath"); }
     }
     # Retrieve the filename and copy file to that name.
-    my $filename = get_filename($filepath);
-    system("cp $archive$serde_file $filename") # TODO force overwrite
+    my $filename = $path[$#path];
+    system("cp", "$archive$serde_file", "$filename") # TODO force overwrite
 }
 
 # Gets the filename portion of a complete filepath string.
