@@ -31,18 +31,17 @@ either manually or by using `2pac pacup -d PATH` or `-p`, respectively.
 <br>
 
 `~/.config/2pac.toml` <br>
-In addition to the tracking and package registry files, `vault/` contains 
-a configuration file that can be used to declaratively set behavior.
-**(Actual options TBD...)**<br>
+This is a configuration file that can be used to declaratively set behavior.
+<br>
 
 `2pac track PATH` <br>
 Records the full filepath for the given file or directory in 
-`vault/tracking.txt`. This file is later read to determine which files 
+`~/.cache/2pac/tracking.txt`. This file is later read to determine which files 
 should be copied to `vault/`. <br>
 
 `2pac pacup [-p] [-d PATH]` <br>
 Queries pacman for explicitly-installed packages and records the list in 
-`vault/registry.txt`, then for every file/directory found in 
+`~/.cache/2pac/registry.txt`, then for every file/directory found in 
 `tracking.txt`, copies that file to `vault/` under a filename that 
 represents its path. <br>
 **NOTE:** It does this by escaping all `/` in the filepath so filepaths,
@@ -51,12 +50,13 @@ They should be renamed before using `2pac track`. <br>
 
 The `-p` flag will attempt to push the updated `vault/` to its remote 
 repository if one has been configured in git or is specified in 
-`Config.toml`. <br>
+`2pac.toml`. <br>
 
-The `-d PATH` option will attempt to copy `vault/` to that location. <br>
+The `-d PATH` option will attempt to copy `~/.cache/2pac/` to that location. 
+<br>
 
-`2pac unpac Path/To/vault/` <br>
-Clone the vault back from git or find it on the drive where it was stored.
+`2pac unpac Path/To/Cache/` <br>
+Clone the cache back from git or find it on the drive where it was stored.
 Pass the location to `unpac` to sync pacman packages and restore the
 directory structures and files saved in `vault/`.
 
@@ -64,4 +64,3 @@ directory structures and files saved in `vault/`.
 # Disclaimer
 It works for me on my machine and that's about all I can guarantee.
 Submit an issue if you find a bug. Script is free to use and modify. 
-Fork me harder daddy~
