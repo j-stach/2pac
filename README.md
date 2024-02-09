@@ -23,20 +23,20 @@ You can install `2pac` the easy way:
 Or the hard way, by following the steps in SETUP.md.
 
 ## Use:
-#### ~/.cache/2pac/vault/ 
+### ~/.cache/2pac/vault/ 
 2pac uses a cache directory to store its records and files, which is 
 initialized for git when it is created. This directory can be saved to 
 an external drive and/or pushed to a remote repository for safekeeping, 
 either manually or by using `2pac pacup -d PATH` or `-p`, respectively. 
 <br>
-#### ~/.config/2pac.toml
+### ~/.config/2pac.toml
 This is a configuration file that can be used to declaratively set behavior.
 <br>
-#### 2pac track PATH
+### 2pac track PATH
 Records the full filepath for the given file or directory in 
 `~/.cache/2pac/tracking.txt`. This file is later read to determine which files 
 should be copied to `vault/`. <br>
-#### 2pac pacup [-p] [-d PATH]
+### 2pac pacup [-p] [-d PATH]
 Queries pacman for explicitly-installed packages and records the list in 
 `~/.cache/2pac/registry.txt`, then for every file/directory found in 
 `tracking.txt`, copies that file to `vault/` under a filename that 
@@ -51,7 +51,7 @@ repository if one has been configured in git or is specified in
 
 The `-d PATH` option will attempt to copy `~/.cache/2pac/` to that location. 
 <br>
-#### sudo 2pac unpac Path/To/Cache/
+### sudo 2pac unpac Path/To/Cache/
 Clone the cache back from git or find it on the drive where it was stored.
 Pass the location to `unpac` to sync pacman packages and restore the
 directory structures and files saved in `vault/`.
